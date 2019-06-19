@@ -1,0 +1,3 @@
+const PowerUpType = {
+    SUMMER: 'summer'
+}
