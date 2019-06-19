@@ -11,6 +11,9 @@ class Game {
       }
     );
 
+    this.gameOver = false;
+    this.stop = false;
+
     this.mapSize = 13;
     this.tileSize = this.displaySize / this.mapSize;
 
@@ -47,6 +50,9 @@ class Game {
     this.players[0].tileSize = this.tileSize;
     this.players[1].tileSize = this.tileSize;
 
+    this.players[0].bombTexture = PIXI.Texture.from('assets/player/bomb_01.png');
+    this.players[1].bombTexture = PIXI.Texture.from('assets/player/bomb_02.png');
+
     this.app.ticker.add(delta => this.gameLoop(delta));
   }
 
@@ -54,6 +60,10 @@ class Game {
     var backgroundTexture = PIXI.Texture.from('assets/terrain/BackgroundTile.png');
     var solidTexture = PIXI.Texture.from('assets/terrain/SolidBlock.png');
     var explodableTexture = PIXI.Texture.from('assets/terrain/ExplodableBlock.png');
+
+    var powerUpTextureAddBomb = PIXI.Texture.from('assets/powerups/BombPowerup.png');
+    var powerUpTextureSpeedUp= PIXI.Texture.from('assets/powerups/SpeedPowerup.png');
+    var powerUpTextureFlame = PIXI.Texture.from('assets/powerups/FlamePowerup.png');
 
     for (var x = 0; x < this.mapSize; x++) {
       this.map[x] = Array(this.mapSize);
@@ -74,6 +84,7 @@ class Game {
       }
     }
     
+    //Create Borders of the map
     for(var x = 0; x < this.mapSize; x++) {
       for (var y = 0; y < this.mapSize; y++) {
 
@@ -89,6 +100,7 @@ class Game {
       }
     }
 
+    //Create solid blocks of the inner map
     for (var x = 2; x < (this.mapSize - 2); x += 2) {
       for (var y = 2; y < (this.mapSize - 2); y += 2) {
         var solidSprite = new PIXI.Sprite(solidTexture);
@@ -101,6 +113,7 @@ class Game {
       }
     }
 
+    //Create explodable wall and PowerUps
     for (var x = 0; x < this.mapSize; x++) {
       for (var y = 0; y < this.mapSize; y++) {
 
@@ -117,6 +130,35 @@ class Game {
 
             var sprite = this.map[x][y].getChildAt(0);
             if (sprite.wallType != WallType.SOLID) {
+              
+              if (Math.floor(Math.random() * 200) < 50) {
+                var powerUpType = Math.floor(Math.random() * 4);
+                var powerUpSprite;
+                switch(powerUpType) {
+                  case PowerUpType.ADDBOMB:
+                  default:
+                    powerUpSprite = new PIXI.Sprite(powerUpTextureAddBomb);
+                    powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    break;
+                  case PowerUpType.SPEEDUP:
+                    powerUpSprite = new PIXI.Sprite(powerUpTextureSpeedUp);
+                    powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    break;
+                  case PowerUpType.STRONGBOMB:
+                    powerUpSprite = new PIXI.Sprite(powerUpTextureFlame);
+                    powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    break;
+                  case PowerUpType.CONFUSE:
+                    powerUpSprite = new PIXI.Sprite(powerUpTextureSpeedUp);
+                    powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    break;
+                }
+                
+                powerUpSprite.wallType = WallType.POWERUP;
+                this.map[x][y].addChild(powerUpSprite);
+              }
+              
+
               var explodableSprite = new PIXI.Sprite(explodableTexture);
               explodableSprite.width = this.tileSize;
               explodableSprite.height = this.tileSize;
@@ -130,11 +172,17 @@ class Game {
   }
 
   gameLoop(delta) {
-    this.players[0].map = this.map;
-    this.players[1].map = this.map;
+    if (this.gameOver == false && this.stop == false) {
+      this.players[0].map = this.map;
+      this.players[1].map = this.map;
 
-    this.players[0].updatePosition(delta);
-    this.players[1].updatePosition(delta);
+      this.players[0].updatePosition(delta);
+      this.players[1].updatePosition(delta);
+    } else if (this.gameOver == true && this.stop == false) {
+      this.stop = true;
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keyup', onKeyUp);
+    }
   }
 }
 
@@ -148,4 +196,9 @@ function onKeyDown(e) {
 function onKeyUp(e) {
   game.players[0].keyUp(e);
   game.players[1].keyUp(e);
+}
+
+function gameOver(text) {
+  console.log("Test2");
+  game.gameOver = true;
 }
