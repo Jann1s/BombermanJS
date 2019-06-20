@@ -6,7 +6,6 @@ class PowerUp {
 
     madeContact(player, callback) {
 
-        console.log(this.type);
         switch(this.type) {
             case PowerUpType.ADDBOMB:
                 player.bombAmount += this.addend;

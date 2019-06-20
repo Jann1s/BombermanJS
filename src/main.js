@@ -31,8 +31,8 @@ class Game {
   init() {
     this.generateMap();
 
-    this.players[0] = new Player(new ControlScheme(65, 68, 87, 83, 32), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_01.png')));
-    this.players[1] = new Player(new ControlScheme(37, 39, 38, 40, 13), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_02.png')));
+    this.players[0] = new Player("Player 1", new ControlScheme(65, 68, 87, 83, 32), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_01.png')));
+    this.players[1] = new Player("Player 2", new ControlScheme(37, 39, 38, 40, 13), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_02.png')));
 
     for (var i = 0; i < this.players.length; i++) {
       this.players[i].sprite.width = this.tileSize;
