@@ -1,5 +1,5 @@
 class Game {
-  constructor() {
+  constructor(player1, player2) {
     this.displaySize = 600;
 
     this.app = new PIXI.Application({ 
@@ -20,19 +20,20 @@ class Game {
     this.players = Array(2);
     this.map = Array(this.mapSize);
 
-    document.body.appendChild(this.app.view);
+    document.getElementById("gameArea").innerHTML = "";
+    document.getElementById("gameArea").appendChild(this.app.view);
 
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
     
-    this.init();
+    this.init(player1, player2);
   }
 
-  init() {
+  init(player1, player2) {
     this.generateMap();
 
-    this.players[0] = new Player("Player 1", new ControlScheme(65, 68, 87, 83, 32), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_01.png')));
-    this.players[1] = new Player("Player 2", new ControlScheme(37, 39, 38, 40, 13), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_02.png')));
+    this.players[0] = new Player(player1, new ControlScheme(65, 68, 87, 83, 32), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_01.png')));
+    this.players[1] = new Player(player2, new ControlScheme(37, 39, 38, 40, 13), [0.1, 0.2], new PIXI.Sprite(PIXI.Texture.from('assets/player/player_02.png')));
 
     for (var i = 0; i < this.players.length; i++) {
       this.players[i].sprite.width = this.tileSize;
@@ -64,7 +65,8 @@ class Game {
     var powerUpTextureAddBomb = PIXI.Texture.from('assets/powerups/BombPowerup.png');
     var powerUpTextureSpeedUp= PIXI.Texture.from('assets/powerups/SpeedPowerup.png');
     var powerUpTextureFlame = PIXI.Texture.from('assets/powerups/FlamePowerup.png');
-
+    var powerUpTextureConfuse = PIXI.Texture.from('assets/powerups/ConfusedPowerup.png');
+    
     for (var x = 0; x < this.mapSize; x++) {
       this.map[x] = Array(this.mapSize);
 
@@ -131,7 +133,7 @@ class Game {
             var sprite = this.map[x][y].getChildAt(0);
             if (sprite.wallType != WallType.SOLID) {
               
-              if (Math.floor(Math.random() * 200) < 50) {
+              if (Math.floor(Math.random() * 200) < 40) {
                 var powerUpType = Math.floor(Math.random() * 4);
                 var powerUpSprite;
                 switch(powerUpType) {
@@ -143,14 +145,17 @@ class Game {
                   case PowerUpType.SPEEDUP:
                     powerUpSprite = new PIXI.Sprite(powerUpTextureSpeedUp);
                     powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    powerUpSprite.powerUp.addend = 0.25;
                     break;
                   case PowerUpType.STRONGBOMB:
                     powerUpSprite = new PIXI.Sprite(powerUpTextureFlame);
                     powerUpSprite.powerUp = new PowerUp(powerUpType);
                     break;
                   case PowerUpType.CONFUSE:
-                    powerUpSprite = new PIXI.Sprite(powerUpTextureSpeedUp);
+                    powerUpSprite = new PIXI.Sprite(powerUpTextureConfuse);
                     powerUpSprite.powerUp = new PowerUp(powerUpType);
+                    powerUpSprite.width = this.tileSize;
+                    powerUpSprite.height = this.tileSize;
                     break;
                 }
                 
@@ -185,8 +190,11 @@ class Game {
     }
   }
 }
+var game;
 
-var game = new Game();
+function playGame() {
+  game = new Game(document.getElementById("playerOne").value, document.getElementById("playerTwo").value);
+}
 
 function onKeyDown(e) {
   game.players[0].keyDown(e);
@@ -198,7 +206,21 @@ function onKeyUp(e) {
   game.players[1].keyUp(e);
 }
 
-function gameOver(text) {
-  console.log("Test2");
+function confusePlayer(name) {
+  for (var i = 0; i < game.players.length; i++) {
+    if (name != game.players[i].name) {
+      game.players[i].controls.confused = true;
+    }
+  }
+}
+
+function gameOver(name) {
   game.gameOver = true;
+
+  for (var i = 0; i < game.players.length; i++) {
+    if (name != game.players[i].name) {
+      document.getElementById("gameOver").innerText = "Congratulations " + game.players[i].name + ", You Win!";
+      document.getElementById("gameArea").innerHTML = "";
+    }
+  }
 }

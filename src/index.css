@@ -1,0 +1,11 @@
+input {
+    display: block;
+    margin: 15px 0px 15px 0px;
+}
+
+label {
+    display: block;
+    float: left;
+    margin: 0px 10px 0px 0px;
+    line-height: 1.7;
+}

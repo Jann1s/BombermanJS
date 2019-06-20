@@ -3,10 +3,26 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Hello World</title>
+    <title>Bomberman JS</title>
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
+    <h1>BombermanJS</h1>
+    <p>Welcome to BombermanJS. The controls are the following:</p>
+    <p>Player 1: WASD to move and SPACE to place the bomb</p>
+    <p>Player 2: Arrow Keys to move and right-enter to place the bomb</p>
+    <h2 id="gameOver"></h2>
+    <div id="gameArea">
+        <h5>Please enter your names</h5>
+        <label for="playerOne">Player 1: </label>
+        <input type="text" id="playerOne">
+        <label for="playerTwo">Player 2: </label>
+        <input type="text" id="playerTwo">
+
+        <button id="playButton" onclick="playGame()">Play !</button> 
+    </div>
+
     <script src="lib/pixi.js"></script>
     <script type="text/javascript" src="Player.js"></script>
     <script type="text/javascript" src="ControlScheme.js"></script>

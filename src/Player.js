@@ -4,7 +4,7 @@ class Player {
         this.controls = controls;
         this.position = position;
         this.speed = 3;
-        this.bombSize = 2;
+        this.bombSize = 1;
         this.bombAmount = 1;
         this.bombsMax = 1;
         this.sprite.vx = 0;
@@ -46,6 +46,27 @@ class Player {
         this.position[0] = (this.sprite.x + (this.tileSize / 2)) / this.tileSize;
         this.position[1] = (this.sprite.y + (this.tileSize / 2)) / this.tileSize;
 
+        if (this.controls.confused == true) {
+            this.controls.confused = false;
+
+            //Had to do it this way, otherwise it would have been mapped to the field this.controls.*
+            //in which there would be now way to reset it.
+            let leftOld = this.controls.left;
+            let rightOld = this.controls.right;
+            let upOld = this.controls.up;
+            let downOld = this.controls.down;
+
+            setTimeout(function() {this.resetConfuse(leftOld, rightOld, upOld, downOld);}.bind(this), 5000);
+
+            var left = this.controls.left;
+            var up = this.controls.up;
+
+            this.controls.left = this.controls.right;
+            this.controls.right = left;
+            this.controls.up = this.controls.down;
+            this.controls.down = up;
+        }
+
         switch(this.currentButton) {
             case this.controls.left:
                 this.sprite.vx = -this.speed;
@@ -73,6 +94,13 @@ class Player {
         this.checkPosition();
         this.sprite.x += this.sprite.vx * delta;
         this.sprite.y += this.sprite.vy * delta;
+    }
+
+    resetConfuse(left, right, up, down) {
+        this.controls.left = left;
+        this.controls.right = right;
+        this.controls.up = up;
+        this.controls.down = down;
     }
 
     checkPosition() {
@@ -160,28 +188,7 @@ class Player {
                 }
             }.bind(this));
 
-            /*this.map[x][y - 1].children.forEach(function(element) {
-                if (element.wallType == WallType.SOLID || element.wallType == WallType.EXPLODABLE) {
-                    free = false;
-                }
-            });
-            this.map[x][y + 1].children.forEach(function(element) {
-                if (element.wallType == WallType.SOLID || element.wallType == WallType.EXPLODABLE) {
-                    free = false;
-                }
-            });*/
-
             return free;
-            /*
-            if ((blockLeft.wallType != WallType.BACKGROUND && this.controls.left == this.currentButton) ||
-            (blockRight.wallType != WallType.BACKGROUND && this.controls.right == this.currentButton) ||
-            (blockUp.wallType != WallType.BACKGROUND && this.controls.up == this.currentButton) ||
-            (blockDown.wallType != WallType.BACKGROUND && this.controls.down == this.currentButton)) {
-                return false;
-            }
-            else {
-                return true;
-            }*/
         }
         else {
             return false;
@@ -220,7 +227,6 @@ class Player {
                 bomb.name = "bomb";
 
                 this.map[x][y].addChild(bomb);
-                console.log("Placed!");
 
                 setTimeout(function() {this.handleBomb(x, y, bomb);}.bind(this), 2000);
             }
@@ -236,30 +242,18 @@ class Player {
         var stopDown = false;
 
         for (var i = 1; i <= this.bombSize; i++) {
-            if (!stopLeft) {
-                this.explode(x - i, y);
-            }
-            if (!stopRight) {
-                this.explode(x + i, y);
-            }
-            if (!stopUp) {
-                this.explode(x, y - i);
-            }
-            if (!stopDown) {
-                this.explode(x, y + i);
-            }
 
-            if (this.stopBlock(x - i, y) == true) {
-                stopLeft = true;
+            if (!stopLeft || i == 1) {
+                stopLeft = this.explode(x - i, y);
             }
-            if (this.stopBlock(x + i, y) == true) {
-                stopRight = true;
+            if (!stopRight || i == 1) {
+                stopRight = this.explode(x + i, y);
             }
-            if (this.stopBlock(x, y - i) == true) {
-                stopUp = true;
+            if (!stopUp || i == 1) {
+                stopUp = this.explode(x, y - i);
             }
-            if (this.stopBlock(x, y + i) == true) {
-                stopDown = true;
+            if (!stopDown || i == 1) {
+                stopDown = this.explode(x, y + i);
             }
         }
 
@@ -270,8 +264,6 @@ class Player {
         var stopWalkable = false;
 
         if (x > 0 && x < (this.map.length - 1) && y > 0 && y < (this.map.length - 1)) {
-            console.log("X: " + x);
-            console.log("Y: " + y);
             
             for (var i = 0; i < this.map[x][y].children.length; i++) {
                 var block = this.map[x][y].children[i];
@@ -286,15 +278,18 @@ class Player {
     }
 
     explode(x, y) {
+        var blockExplodable = false;
+
         if (x > 0 && x < (this.map.length - 1) && y > 0 && y < (this.map.length - 1)) {
             var block = this.map[x][y].getChildAt(0);
-
+            
             if (block.wallType == WallType.BACKGROUND && this.map[x][y].getChildByName("bomb") == null) {
                 if (this.map[x][y].children.length > 1) {
                     var upperBlock = this.map[x][y].getChildAt(1);
 
                     if (upperBlock.wallType == WallType.EXPLODABLE) {
                         this.map[x][y].removeChildAt(1);
+                        blockExplodable = true;
                     } 
                     else {
                         if (this.map[x][y].children.length > 2) {
@@ -302,6 +297,7 @@ class Player {
                             
                             if (upperBlock.wallType == WallType.EXPLODABLE) {
                                 this.map[x][y].removeChildAt(2);
+                                blockExplodable = true;
                             }
                         }
                     }
@@ -311,19 +307,23 @@ class Player {
                 var playerY = Math.round(this.position[1] - 0.1);
 
                 if (playerX == x && playerY == y) {
-                    console.log("Test");
-                    gameOver();
+                    gameOver(this.name);
                 }
 
                 var flame = new PIXI.Sprite(PIXI.Texture.from('assets/effects/flame.png'));
                 this.map[x][y].addChild(flame);
                 setTimeout(function() {this.handleFlame(x, y, flame);}.bind(this), 500);
+                return blockExplodable;
+            }
+            else if (block.wallType == WallType.SOLID) {
+                blockExplodable = true;
             }
         }
+
+        return blockExplodable;
     }
 
     handleFlame(x, y, flame) {
-        console.log("Entferne");
         this.map[x][y].removeChild(flame);
     }
 }

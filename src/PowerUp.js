@@ -17,6 +17,9 @@ class PowerUp {
             case PowerUpType.SPEEDUP:
                 player.speed += this.addend;
                 break;
+            case PowerUpType.CONFUSE:
+                confusePlayer(player.name);
+                break;
             default:
                 break;
         }
